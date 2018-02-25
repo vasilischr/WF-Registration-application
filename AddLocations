@@ -1,0 +1,141 @@
+﻿using MySql.Data.MySqlClient;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace WindowsFormsApplication3
+{
+
+    public partial class AddDAddress : Form
+    {
+        string table;
+        static string connetionString = "server=188.226.193.8;database=ESOL;uid=userss;pwd=Chrvasilis95;";
+        MySqlConnection cnn = new MySqlConnection(connetionString);
+        private bool ch=false;
+        private bool ch1=false;
+
+        public AddDAddress(string tb)
+        {
+            table = tb;
+            InitializeComponent();
+            cnn.Open();
+            dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.None;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.None;
+            dataGridView1.AllowUserToResizeRows = false;
+            dataGridView1.AllowUserToResizeColumns = false;
+            refresh1();
+            
+            textBox1.ForeColor = Color.Gray;
+            textBox1.Text = table;
+            textBox2.ForeColor = Color.Gray;
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
+
+        private void textBox1_Enter(object sender, EventArgs e)
+        {
+           
+            textBox1.Text = "";
+            textBox1.ForeColor = Color.Black;
+            textBox2.ForeColor = Color.Gray;
+            textBox2.Text = "ID";
+        }
+
+        private void textBox2_Enter(object sender, EventArgs e)
+        {
+            textBox2.Text = "";
+            textBox2.ForeColor = Color.Black;
+            textBox1.ForeColor = Color.Gray;
+            textBox1.Text = table;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            if (ch)
+            {
+                try
+                {
+                    MySqlCommand cmd = cnn.CreateCommand();
+                    cmd.CommandText = "insert into  "+table+"(location) values (@txt);";
+                    cmd.Parameters.AddWithValue("@txt", textBox1.Text);
+                    cmd.ExecuteNonQuery();
+                    refresh1();
+                }
+                catch { MessageBox.Show("Can't Insert Data."); }
+                textBox1.ForeColor = Color.Gray;
+                textBox1.Text = "Destination Address";
+            }
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            if (ch1 &&  (!textBox2.Text.Equals("ID"))) {
+                try
+                {
+                    MySqlCommand cmd = cnn.CreateCommand();
+                    cmd.CommandText = "delete from " + table + " where ID=@id;";
+                    cmd.Parameters.AddWithValue("@id", textBox2.Text);
+                    cmd.ExecuteNonQuery();
+                    refresh1();
+                }
+                catch { MessageBox.Show("Can't Insert Data."); }
+                textBox2.ForeColor = Color.Gray;
+                textBox2.Text = "ID";
+            }
+        }
+        private void refresh1() {
+            try
+            {
+                MySqlCommand cmd = cnn.CreateCommand();
+                cmd.CommandText = "Select * from " + table + ";";
+                MySqlDataAdapter adap = new MySqlDataAdapter(cmd);
+                DataSet ds = new DataSet();
+                adap.Fill(ds);
+                dataGridView1.DataSource = ds.Tables[0].DefaultView;
+                DataGridViewColumn column0 = dataGridView1.Columns[0];
+                column0.Width = 20;
+                DataGridViewColumn column1 = dataGridView1.Columns[1];
+                column1.Width = 100;
+            }
+            catch { }
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+             if (textBox1.Text.Length > 15 && !textBox1.Text.Equals("Destination Address"))
+            {
+                textBox1.BackColor = Color.Red;
+                
+                ch = false;
+            }
+            else
+            {
+                textBox1.BackColor = Color.White;
+                ch = true;
+            }
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            int result;
+            if ((!int.TryParse(textBox2.Text, out result)) &&  (! textBox2.Text.Equals("") && (!textBox2.Text.Equals("ID"))))
+            {
+                textBox2.BackColor = Color.Red;
+                ch1 = false;
+            }
+            else {
+                textBox2.BackColor = Color.White;
+                ch1 = true;
+            }
+        }
+    }
+}
